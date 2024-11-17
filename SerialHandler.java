@@ -1,4 +1,5 @@
 
+import java.util.Iterator;
 import processing.core.PApplet;
 import processing.serial.*;
 
@@ -31,14 +32,12 @@ public class SerialHandler {
 
         parent.background(255);
 
-        /*
-        drawWavesData(lastEventInterval);
-        drawPoorSignal(lastEventInterval);
         drawAttention();
-        drawMeditation();
         drawCharAttention();
         drawCharMeditation();
-         */
+        drawMeditation();
+        drawPoorSignal(lastEventInterval);
+        drawWavesData(lastEventInterval);
     }
 
     public boolean connect2port(int index) {
@@ -70,51 +69,17 @@ public class SerialHandler {
         eeg.serialByte(inByte);
     }
 
-    /*
-    public void serialSelectUI() {
-        parent.background(255);
-
-        int hover = (int) Math.round(Math.floor(parent.mouseY / 20));
-        int selected = (parent.mousePressed) ? hover : -1;
-
-        for (int i = 0; i < portNames.length; i++) {
-            if (i == selected) {
-                portName = portNames[i];
-                serialPort = new Serial(this, portName, 115200);
-                eeg = new eegPort(this, serialPort);
-                eeg.refresh();
-
-                parent.fill(0);
-                parent.rect(0, i * 20, parent.width, 20);
-                parent.fill(255);
-
-                parent.println("selected " + portName);
-                appState = APP_CONNECTING;
-                delay(500);
-            } else if (i == hover) {
-                fill(200, 200, 240);
-                noStroke();
-                rect(0, i * 20, width, 20);
-                fill(0);
-            } else {
-                fill(0);
-            }
-
-            text(portNames[i], 5, (i + 1) * 20);
-        }
-    }
-
     private void drawAttention() {
-        // Draw attention
-        noFill();
-        stroke(0);
-        ellipse(400, 90, 127, 127);
-        fill(204, 102, 0);
-        noStroke();
-        ellipse(400, 90, eeg.attention, eeg.attention);
+        parent.noFill();
+        parent.stroke(0);
+        parent.ellipse(400, 90, 127, 127);
+        parent.fill(204, 102, 0);
+        parent.noStroke();
+        parent.ellipse(400, 90, eeg.attention, eeg.attention);
     }
 
     private void drawCharAttention() {
+        /*
         // chart attention
         int attentionCount = eeg.attentionBuffer.size();
         skip = 0;
@@ -156,9 +121,11 @@ public class SerialHandler {
             prevY = y;
             j++;
         }
+         */
     }
 
     private void drawCharMeditation() {
+        /*
         // chart meditation
         int meditationCount = eeg.meditationBuffer.size();
 
@@ -198,42 +165,42 @@ public class SerialHandler {
             prevY = y;
             j++;
         }
+         */
     }
 
     private void drawMeditation() {
-        // Draw meditation
-        noFill();
-        stroke(0);
-        ellipse(600, 90, 127, 127);
-        fill(108, 102, 240);
-        noStroke();
-        ellipse(600, 90, eeg.meditation, eeg.meditation);
+        parent.noFill();
+        parent.stroke(0);
+        parent.ellipse(600, 90, 127, 127);
+        parent.fill(108, 102, 240);
+        parent.noStroke();
+        parent.ellipse(600, 90, eeg.meditation, eeg.meditation);
     }
 
     private void drawPoorSignal(int lastEventInterval) {
-        noStroke();
+        parent.noStroke();
 
         if (eeg.poorSignal < 50 && lastEventInterval < 500) {
             // good signal
-            fill(0, 255, 0);
-            ellipse(150, 320, 100, 100);
+            parent.fill(0, 255, 0);
+            parent.ellipse(150, 320, 100, 100);
         } else {
             // bad signal
-            fill(255, 0, 0);
-            ellipse(150, 320, 100, 100);
+            parent.fill(255, 0, 0);
+            parent.ellipse(150, 320, 100, 100);
         }
 
-        textAlign(CENTER);
-        fill(0);
-        text("Attention", 400, 20);
-        text("Meditation", 600, 20);
+        parent.textAlign(parent.CENTER);
+        parent.fill(0);
+        parent.text("Attention", 400, 20);
+        parent.text("Meditation", 600, 20);
 
         if (eeg.lastAttention > 0) {
-            text(millis() - eeg.lastAttention + " ms old", 400, 180);
+            parent.text(parent.millis() - eeg.lastAttention + " ms old", 400, 180);
         }
 
         if (eeg.lastMeditation > 0) {
-            text(millis() - eeg.lastMeditation + " ms old", 600, 180);
+            parent.text(parent.millis() - eeg.lastMeditation + " ms old", 600, 180);
         }
     }
 
@@ -273,7 +240,7 @@ public class SerialHandler {
         int x = 0, y = 0;
         int prevX = 0, prevY = 0;
 
-        stroke(0);
+        parent.stroke(0);
 
         // we are drawing between 0 and 800 in width, and between 400 and 600 in height
         while (iterator.hasNext()) {
@@ -287,7 +254,7 @@ public class SerialHandler {
             y = (int) (580 - 200.0 * vobs.vectorValue / maxValue);
 
             if (j > 0) {
-                line(prevX, prevY, x, y);
+                parent.line(prevX, prevY, x, y);
             }
 
             prevValue = vobs.vectorValue;
@@ -298,23 +265,23 @@ public class SerialHandler {
     }
 
     private void drawWavesData(int lastEventInterval) {
-        textAlign(LEFT);
-        fill(0);
-        text("Port: " + portName, 5, 20);
-        text("Dongle state: " + eeg.portDongleState, 5, 40);
-        text("Poor signal: " + eeg.poorSignal, 5, 60);
-        text("Attention: " + eeg.attention, 5, 80);
-        text("Meditation: " + eeg.meditation, 5, 100);
-        text("Last event: " + lastEventInterval + " ms ago", 5, 120);
-        text("Raw buffer size: " + eeg.rawDataBuffer.size(), 5, 140);
-        text("Raw data sequence: " + eeg.rawSequence, 5, 160);
-        text("Vector sequence: " + eeg.vectorSequence, 5, 180);
-        text("Vector buffer size: " + eeg.vectorBuffer.size(), 5, 200);
-        text("Serial read state: " + eeg.portReadState, 5, 220);
-        text("Failed checksum count: " + eeg.failedChecksumCount, 5, 240);
-        text("Click mouse for a second to reset", 5, 260);
+        parent.textAlign(parent.LEFT);
+        parent.fill(0);
+        parent.text("Port: " + portName, 5, 20);
+        parent.text("Dongle state: " + eeg.portDongleState, 5, 40);
+        parent.text("Poor signal: " + eeg.poorSignal, 5, 60);
+        parent.text("Attention: " + eeg.attention, 5, 80);
+        parent.text("Meditation: " + eeg.meditation, 5, 100);
+        parent.text("Last event: " + lastEventInterval + " ms ago", 5, 120);
+        parent.text("Raw buffer size: " + eeg.rawDataBuffer.size(), 5, 140);
+        parent.text("Raw data sequence: " + eeg.rawSequence, 5, 160);
+        parent.text("Vector sequence: " + eeg.vectorSequence, 5, 180);
+        parent.text("Vector buffer size: " + eeg.vectorBuffer.size(), 5, 200);
+        parent.text("Serial read state: " + eeg.portReadState, 5, 220);
+        parent.text("Failed checksum count: " + eeg.failedChecksumCount, 5, 240);
+        parent.text("Click mouse for a second to reset", 5, 260);
     }
-     */
+
     // Métodos accesores
     public String getPortName() {
         return this.portName;
