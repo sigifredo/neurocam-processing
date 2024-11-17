@@ -1,4 +1,5 @@
 
+import processing.core.PApplet;
 import processing.serial.*;
 
 public class SerialHandler {
@@ -7,43 +8,74 @@ public class SerialHandler {
     private Serial serialPort;
     private String portName;
     private String portNames[];
+    private PApplet parent;
 
-    public SerialHandler() {
+    public SerialHandler(PApplet parent) {
+        this.parent = parent;
+
+        portName = "";
         portNames = Serial.list();
-        showWavesData = false;
-        showSignal = false;
 
-        for (int i = 0; i < portNames.length; i++) {
-            println(portNames[i]);
-        }
+        eeg = null;
+        serialPort = null;
+        // showWavesData = false;
+        // showSignal = false;
     }
 
     public void draw() {
-        int lastEventInterval = millis() - eeg.lastEvent;
+        int lastEventInterval = parent.millis() - eeg.lastEvent;
 
-        if (mousePressed) {
+        if (parent.mousePressed) {
             eeg.refresh();
         }
 
-        background(255);
+        parent.background(255);
 
+        /*
         drawWavesData(lastEventInterval);
         drawPoorSignal(lastEventInterval);
         drawAttention();
         drawMeditation();
         drawCharAttention();
         drawCharMeditation();
+         */
+    }
+
+    public boolean connect2port(int index) {
+        if (index >= 0 && index < portNames.length) {
+            try {
+                this.portName = this.portNames[index];
+                this.serialPort = new Serial(parent, this.portName, 115200);
+                eeg = new eegPort(parent, this.serialPort);
+                eeg.refresh();
+
+                return true;
+            } catch (Exception e) {
+                this.portName = "";
+                this.portNames = Serial.list();
+
+                this.eeg = null;
+                this.serialPort = null;
+
+                parent.println("No se ha podido conectar el puerto \"" + e.getMessage() + "\"");
+
+                return false;
+            }
+        } else {
+            return false;
+        }
     }
 
     public void readData(int inByte) {
         eeg.serialByte(inByte);
     }
 
+    /*
     public void serialSelectUI() {
-        background(255);
+        parent.background(255);
 
-        int hover = (int) Math.round(Math.floor(mouseY / 20));
-        int selected = (mousePressed) ? hover : -1;
+        int hover = (int) Math.round(Math.floor(parent.mouseY / 20));
+        int selected = (parent.mousePressed) ? hover : -1;
 
         for (int i = 0; i < portNames.length; i++) {
             if (i == selected) {
@@ -52,11 +84,11 @@ public class SerialHandler {
                 eeg = new eegPort(this, serialPort);
                 eeg.refresh();
 
-                fill(0);
-                rect(0, i * 20, width, 20);
-                fill(255);
+                parent.fill(0);
+                parent.rect(0, i * 20, parent.width, 20);
+                parent.fill(255);
 
-                println("selected " + portName);
+                parent.println("selected " + portName);
                 appState = APP_CONNECTING;
                 delay(500);
             } else if (i == hover) {
@@ -282,5 +314,13 @@ public class SerialHandler {
         text("Failed checksum count: " + eeg.failedChecksumCount, 5, 240);
         text("Click mouse for a second to reset", 5, 260);
     }
+     */
+    // Métodos accesores
+    public String getPortName() {
+        return this.portName;
+    }
 
+    public String[] getPortNames() {
+        return this.portNames;
+    }
 }
