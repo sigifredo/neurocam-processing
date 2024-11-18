@@ -1,7 +1,3 @@
-// Sample sketch to illustrate MindWave support in Processing
-
-// for graphing
-import processing.serial.*;
 
 public enum AppState {
     APP_SERIAL_SELECT,
