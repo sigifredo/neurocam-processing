@@ -1,43 +1,35 @@
 
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import processing.core.PApplet;
 import processing.serial.*;
 
 public class SerialHandler {
 
+    private boolean debug;
     private eegPort eeg;
-    private Serial serialPort;
+    private Range meditationInfo;
+    private List<MeditationObserver> meditationObservers;
+    private PApplet parent;
     private String portName;
     private String portNames[];
-    private PApplet parent;
+    private Serial serialPort;
 
     public SerialHandler(PApplet parent) {
         this.parent = parent;
 
-        portName = "";
-        portNames = Serial.list();
-
-        eeg = null;
-        serialPort = null;
-        // showWavesData = false;
-        // showSignal = false;
+        this.meditationInfo = new Range();
+        this.debug = false;
+        this.eeg = null;
+        this.meditationObservers = new ArrayList<>();
+        this.portName = "";
+        this.portNames = Serial.list();
+        this.serialPort = null;
     }
 
-    public void draw() {
-        int lastEventInterval = parent.millis() - eeg.lastEvent;
-
-        if (parent.mousePressed) {
-            eeg.refresh();
-        }
-
-        parent.background(255);
-
-        drawAttention();
-        drawCharAttention();
-        drawCharMeditation();
-        drawMeditation();
-        drawPoorSignal(lastEventInterval);
-        drawWavesData(lastEventInterval);
+    public void addMeditationObserver(MeditationObserver mo) {
+        this.meditationObservers.add(mo);
     }
 
     public boolean connect2port(int index) {
@@ -62,6 +54,28 @@ public class SerialHandler {
             }
         } else {
             return false;
+        }
+    }
+
+    public void draw() {
+        int lastEventInterval = parent.millis() - eeg.lastEvent;
+
+        if (parent.mousePressed) {
+            eeg.refresh();
+        }
+
+        parent.background(255);
+
+        this.meditationInfo.setValue(eeg.meditation);
+        this.notifyMeditationObservers(this.meditationInfo);
+
+        if (this.debug) {
+            drawAttention();
+            drawCharAttention();
+            drawCharMeditation();
+            drawMeditation();
+            drawPoorSignal(lastEventInterval);
+            drawWavesData(lastEventInterval);
         }
     }
 
@@ -282,6 +296,12 @@ public class SerialHandler {
         parent.text("Click mouse for a second to reset", 5, 260);
     }
 
+    private void notifyMeditationObservers(Range meditationInfo) {
+        for (MeditationObserver observer : this.meditationObservers) {
+            observer.onEvent(meditationInfo);
+        }
+    }
+
     // Métodos accesores
     public String getPortName() {
         return this.portName;
@@ -289,5 +309,9 @@ public class SerialHandler {
 
     public String[] getPortNames() {
         return this.portNames;
+    }
+
+    public void setDebug(boolean debug) {
+        this.debug = debug;
     }
 }

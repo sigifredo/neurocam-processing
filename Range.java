@@ -1,19 +1,23 @@
 
 public class Range {
 
+    private float value;
     private float start;
     private float end;
 
     public Range() {
+        this.value = 0.0f;
         this.start = 0.0f;
         this.end = 0.0f;
     }
 
-    public void expand(float number) {
-        if (number < this.start) {
-            this.start = number;
-        } else if (number > this.end) {
-            this.end = number;
+    public Range setValue(float value) {
+        this.value = value;
+
+        if (value < this.start) {
+            this.start = value;
+        } else if (value > this.end) {
+            this.end = value;
         }
 
         if (this.start > this.end) {
@@ -21,6 +25,12 @@ public class Range {
             this.end = this.start - this.end;
             this.start -= this.end;
         }
+
+        return this;
+    }
+
+    public float getValue() {
+        return this.value;
     }
 
     public float getStart() {
@@ -37,5 +47,11 @@ public class Range {
 
     public static float map(float n, float inStart, float inEnd, float outStart, float outEnd) {
         return outStart + (n - inStart) * (outEnd - outStart) / (inEnd - inStart);
+    }
+
+    public void set(Range other) {
+        this.value = other.value;
+        this.start = other.start;
+        this.end = other.end;
     }
 }

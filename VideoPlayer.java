@@ -1,23 +1,24 @@
 
 import processing.core.PApplet;
-// import processing.core.PImage;
 import processing.video.*;
 
-public class VideoPlayer {
+public class VideoPlayer implements MeditationObserver {
 
-    private Movie[] videos;
     private boolean loading;
     private PApplet parent;
+    private Range signalInfo;
+    private Movie[] videos;
 
     public VideoPlayer(PApplet parent) {
         this.parent = parent;
-        this.videos = new Movie[5];
         this.loading = true;
+        this.signalInfo = new Range();
+        this.videos = new Movie[5];
 
         new Thread(() -> {
             for (int i = 0; i < videos.length; i++) {
                 try {
-                    this.videos[i] = new Movie(this, "v" + String.valueOf(i) + ".mp4");
+                    this.videos[i] = new Movie(this.parent, "v" + String.valueOf(i) + ".mp4");
                     this.videos[i].loop();
                 } catch (Exception e) {
                     parent.println(e.getMessage());
@@ -28,41 +29,11 @@ public class VideoPlayer {
         }).start();
     }
 
-    private int findZoneAndScale(Range thetaRange, int theta) {
-
-        return 0;
-        /*
-def find_zone_and_scale(number, r):
-    zone_size = (r.end - r.start) / 4
-    zones = [(r.start + i * zone_size, r.start + (i + 1) * zone_size)
-             for i in range(4)]
-
-    zone_index = -1
-
-    for i, (zone_start, zone_end) in enumerate(zones):
-        if zone_start <= number < zone_end:
-            zone_index = i
-            break
-
-    if zone_index == -1:
-        return {
-            'zone_index': 0,
-            'scale_position': 50.0,
-            'zone_range': zones[0]
-        }
-
-    zone_start, zone_end = zones[zone_index]
-    scale_position = ((number - zone_start) / (zone_end - zone_start)) * 100
-
-    return {
-        'zone_index': zone_index,
-        'scale_position': scale_position,
-        'zone_range': zones[zone_index]
-    }
-         */
-    }
-
-    public void showVideo(int theta) {
+    public void draw() {
+        float d = signalInfo.getEnd() - signalInfo.getStart();
+        float zoneSize = (signalInfo.getEnd() - signalInfo.getStart()) / 4;
+        int zoneIndex = -1;
+        Range[] zones = new Range[4];
 
         for (Movie video : this.videos) {
             if (video.available()) {
@@ -70,44 +41,43 @@ def find_zone_and_scale(number, r):
             }
         }
 
-        int zones = findZoneAndScale(new Range(), theta);
+        if (d > 1.0f) {
+            for (int i = 0; i < 4; i++) {
+                Range zone = new Range()
+                        .setValue(signalInfo.getStart() + i * zoneSize)
+                        .setValue(signalInfo.getStart() + (i + 1) * zoneSize);
 
-        /*
-    while True:
-        ret = True
+                zones[i] = zone;
 
-        for idx, v in enumerate(videos):
-            r, frame = v.read()
+                if (zoneIndex < 0) {
+                    if (signalInfo.getValue() >= zone.getStart() && signalInfo.getValue() <= zone.getEnd()) {
+                        zoneIndex = i;
+                    }
+                }
+            }
 
-            if r:
-                frames[idx] = cv2.resize(frame, canvas_size)
-            else:
-                ret = False
-                break
+            if (zoneIndex < 0 || zoneIndex >= this.videos.length) {
+                parent.image(this.videos[0], 0, 0, parent.width, parent.height);
+            } else {
+                int idx1 = zoneIndex;
+                int idx2 = zoneIndex + 1;
+                int alpha = (int) parent.map(signalInfo.getValue(), zones[zoneIndex].getStart(), zones[zoneIndex].getEnd(), 0.0f, 255.0f);
 
-        if ret:
-            idx1 = 0
-            idx2 = 1
-            alpha = 0.5
-            beta = 0.5
+                if (idx2 >= this.videos.length) {
+                    idx2 = 0;
+                }
 
-            if current_theta != None and theta.start != None and theta.end != None:
-                zones = find_zone_and_scale(current_theta, theta)
-                idx1 = zones['zone_index']
-                idx2 = zones['zone_index'] + 1
-                alpha = zones['scale_position'] / 100.0
-                beta = 1.0 - alpha
-
-            combined_frame = cv2.addWeighted(
-                frames[idx1],
-                alpha,
-                frames[idx2],
-                beta,
-                0
-            )
-
-            cv2.imshow('Video', combined_frame)
-         */
+                parent.image(this.videos[idx1], 0, 0, parent.width, parent.height);
+                parent.tint(255, alpha);
+                parent.image(this.videos[idx2], 0, 0, parent.width, parent.height);
+            }
+        } else {
+            parent.image(this.videos[0], 0, 0, parent.width, parent.height);
+        }
     }
 
+    @Override
+    public void onEvent(Range meditationInfo) {
+        this.signalInfo.set(meditationInfo);
+    }
 }

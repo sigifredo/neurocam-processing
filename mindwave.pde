@@ -1,4 +1,7 @@
 
+import processing.serial.*;
+import processing.video.*;
+
 public enum AppState {
     APP_SERIAL_SELECT,
     APP_CONNECTING,
@@ -20,11 +23,15 @@ public class SerialSelector {
 AppState appState = AppState.APP_SERIAL_SELECT;
 SerialHandler serialHandler;
 SerialSelector serialSelector;
+VideoPlayer videoPlayer;
 
 void setup() {
     size(800, 600);
     serialHandler = new SerialHandler(this);
     serialSelector = new SerialSelector();
+    videoPlayer = new VideoPlayer(this);
+
+    serialHandler.addMeditationObserver(videoPlayer);
 
     try {
         PFont font = createFont("resources/UbuntuMono-Regular.ttf", SerialSelector.FONT_SIZE);
@@ -46,6 +53,7 @@ void draw() {
             break;
         case APP_CONNECTED:
             serialHandler.draw();
+            videoPlayer.draw();
             break;
     }
 }
