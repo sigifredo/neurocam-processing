@@ -100,25 +100,29 @@ void drawSelectPort() {
 }
 
 void mousePressed() {
-    serialSelector.mouseYHoverPosition = mouseY;
+    if (appState == AppState.APP_SERIAL_SELECT) {
+        serialSelector.mouseYHoverPosition = mouseY;
+    }
 }
 
 void mouseReleased() {
-    int hover = calculeSerialPosition(serialSelector.mouseYHoverPosition);
-    int selected = calculeSerialPosition(mouseY);
+    if (appState == AppState.APP_SERIAL_SELECT) {
+        int hover = calculeSerialPosition(serialSelector.mouseYHoverPosition);
+        int selected = calculeSerialPosition(mouseY);
 
-    if (hover == selected) {
-        appState = AppState.APP_CONNECTING;
-        drawConnecting();
+        if (hover == selected) {
+            appState = AppState.APP_CONNECTING;
+            drawConnecting();
 
-        if (serialHandler.connect2port(serialSelector.index)) {
-            appState = AppState.APP_CONNECTED;
-        } else {
-            appState = AppState.APP_SERIAL_SELECT;
+            if (serialHandler.connect2port(serialSelector.index)) {
+                appState = AppState.APP_CONNECTED;
+            } else {
+                appState = AppState.APP_SERIAL_SELECT;
+            }
         }
-    }
 
-    serialSelector.mouseYHoverPosition = -1;
+        serialSelector.mouseYHoverPosition = -1;
+    }
 }
 
 int calculeSerialPosition(int relativePosition) {
@@ -135,5 +139,13 @@ void serialEvent(Serial port) {
             appState = AppState.APP_CONNECTED;
             frameRate(10);
         }
+    }
+}
+
+void keyPressed() {
+    if (key == 'd' || key == 'D') {
+        videoPlayer.setDebug(!videoPlayer.isDebugging());
+    } else if (key == 's' || key == 'S') {
+        videoPlayer.setMuted(!videoPlayer.isMuted());
     }
 }

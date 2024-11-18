@@ -41,6 +41,10 @@ public class Range {
         return this.end;
     }
 
+    public float map(float start, float end) {
+        return start + (this.value - this.start) * (end - start) / (this.end - this.start);
+    }
+
     public static float map(float n, Range in, Range out) {
         return map(n, in.start, in.end, out.start, out.end);
     }
@@ -53,5 +57,10 @@ public class Range {
         this.value = other.value;
         this.start = other.start;
         this.end = other.end;
+    }
+
+    @Override
+    public String toString() {
+        return "[" + this.start + ", " + this.end + "]: " + this.value;
     }
 }
